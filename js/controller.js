@@ -1,10 +1,13 @@
 import * as Model from "./model.js";
 import { renderAllMessages } from "./view.js";
-import { getBotResponse } from "./eliza.js";
+import { ElizaService } from "../ai/ElizaService.js";
+import { GeminiService } from "../ai/GeminiService.js";
+import { MockService } from "../ai/MockService.js";
 
 window.addEventListener("DOMContentLoaded", () => {
-  console.log("Controller loaded ");
+  console.log("Controller loaded");
 
+  // --- DOM elements ---
   const form = document.getElementById("chatForm");
   const input = document.getElementById("messageBox");
   const chatWindow = document.getElementById("chatWindow");
@@ -12,22 +15,72 @@ window.addEventListener("DOMContentLoaded", () => {
   const importFile = document.getElementById("importFile");
   const clearBtn = document.getElementById("clearBtn");
 
+  // New provider controls
+  const providerSelect = document.getElementById("providerSelect");
+  const apiKeyInput = document.getElementById("apiKeyInput");
+  const saveKeyBtn = document.getElementById("saveKeyBtn");
+  const keyStatus = document.getElementById("keyStatus");
+
+  // --- Model and View setup ---
   renderAllMessages(Model.getMessages());
   document.addEventListener("messagesUpdated", (e) =>
     renderAllMessages(e.detail.messages)
   );
 
-   // Handle send message
-  form.addEventListener("submit", (e) => {
+  // --- AI provider state ---
+  let ai = new ElizaService(); // default
+
+  function setProvider(name) {
+    const keyGetter = () => localStorage.getItem("geminiKey");
+    switch (name) {
+      case "gemini":
+        ai = new GeminiService(keyGetter);
+        break;
+      case "mock":
+        ai = new MockService();
+        break;
+      default:
+        ai = new ElizaService();
+    }
+  }
+
+  providerSelect?.addEventListener("change", (e) => {
+    setProvider(e.target.value);
+  });
+
+  saveKeyBtn?.addEventListener("click", () => {
+    const key = apiKeyInput.value.trim();
+    if (key) {
+      localStorage.setItem("geminiKey", key);
+      keyStatus.textContent = "Key saved locally";
+      apiKeyInput.value = "";
+    } else {
+      keyStatus.textContent = "Enter a key first";
+    }
+  });
+
+  // --- Handle Send Message ---
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const text = input.value.trim();
     if (!text) return;
     Model.addMessage(text, "user");
-    Model.addMessage(getBotResponse(text), "bot");
     input.value = "";
+
+    try {
+      const history = Model.getMessages().map((m) => ({
+        role: m.sender === "user" ? "user" : "assistant",
+        content: m.text,
+      }));
+      const reply = await ai.complete(history);
+      Model.addMessage(reply, "bot");
+    } catch (err) {
+      console.error(err);
+      Model.addMessage("Error: " + err.message, "bot");
+    }
   });
 
-   // Handle Edit/Delete actions
+  // --- Handle Edit/Delete actions ---
   chatWindow.addEventListener("click", (e) => {
     const msgEl = e.target.closest(".message");
     if (!msgEl) return;
@@ -41,7 +94,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Handle Export/Import/Clear
+  // --- Export/Import/Clear ---
   exportBtn.addEventListener("click", () => {
     const blob = new Blob([Model.exportMessages()], {
       type: "application/json",
@@ -53,7 +106,6 @@ window.addEventListener("DOMContentLoaded", () => {
     URL.revokeObjectURL(a.href);
   });
 
-  
   importFile.addEventListener("change", (e) => {
     const f = e.target.files[0];
     if (!f) return;
