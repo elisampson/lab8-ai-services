@@ -16,6 +16,18 @@
 
       <div id="chatWindow" class="messages" aria-live="polite"></div>
 
+      <div class="provider-controls">
+        <label for="providerSelect">Provider:</label>
+        <select id="providerSelect">
+          <option value="eliza">Local Eliza</option>
+          <option value="gemini">Gemini (Cloud)</option>
+          <option value="mock">Mock (Test)</option>
+        </select>
+      <input type="password" id="apiKeyInput" placeholder="API Key (if needed)">
+      <button id="saveKeyBtn" type="button">Save Key</button>
+      <small id="keyStatus"></small>
+    </div>
+
       <form id="chatForm">
         <input type="text" id="messageBox" placeholder="Type a message..." required />
         <button type="submit">Send</button>
