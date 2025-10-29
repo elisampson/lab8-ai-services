@@ -15,13 +15,13 @@ window.addEventListener("DOMContentLoaded", () => {
   const importFile = document.getElementById("importFile");
   const clearBtn = document.getElementById("clearBtn");
 
-  // New provider controls
+  //  provider controls
   const providerSelect = document.getElementById("providerSelect");
   const apiKeyInput = document.getElementById("apiKeyInput");
   const saveKeyBtn = document.getElementById("saveKeyBtn");
   const keyStatus = document.getElementById("keyStatus");
 
-  // --- Model and View setup ---
+  // --- Model  View setup ---
   renderAllMessages(Model.getMessages());
   document.addEventListener("messagesUpdated", (e) =>
     renderAllMessages(e.detail.messages)
