@@ -38,7 +38,7 @@ We reused the MVC setup from Lab 7:
 
 5. **Deployment**
    - The finished app deployed on **Netlify**
-
+   - Link: https://lab-8.netlify.app/
 ## AI Service Comparison
 
 **ElizaService:**  
