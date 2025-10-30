@@ -9,6 +9,8 @@ Not usable for free lab testing.
 Tried multiple endpoints (v1, v1beta, v1beta1) with MakerSuite key.  
 Returned "model not found" errors.  
 Likely due to newer API version or browser limits.
+Update:
+With help of classmate, I was able to figure out how to get the correct version of gemini that can be used for this project. So it works correctly now
 
 ### Decision
-Both APIs authenticated but failed for free use.  
+OpenAi failed due to billing, Gemini worked

@@ -1,17 +1,17 @@
 /**
- * GeminiService - Google's Gemini AI (Your version)
+ * GeminiService - Google's Gemini AI integration using Gemini 2.5 Flash model
  */
-import  AIService  from './AIService.js';
+import AIService from './AIService.js';
 
 class GeminiService extends AIService {
   constructor(apiKey) {
     super();
     this.apiKey = apiKey;
-    // ✅ Use Gemini 2.5 Flash endpoint (works with new API keys)
     this.endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
     this.maxRetries = 2;
   }
 
+  // Sends message and chat history to Gemini API
   async getResponse(message, history = []) {
     if (!this.apiKey) {
       throw new Error('Gemini API key is required');
@@ -28,6 +28,7 @@ class GeminiService extends AIService {
     }
   }
 
+  // Formats message history into Gemini-compatible request body
   _buildContents(message, history) {
     const contents = [];
     const recentHistory = history.slice(-10);
@@ -47,6 +48,7 @@ class GeminiService extends AIService {
     return contents;
   }
 
+  // Performs HTTP POST request with retry on network failure
   async _makeRequest(contents, retryCount = 0) {
     try {
       const response = await fetch(`${this.endpoint}?key=${this.apiKey}`, {
@@ -84,7 +86,6 @@ class GeminiService extends AIService {
       return await response.json();
     } catch (error) {
       if (retryCount < this.maxRetries && error.message.includes('fetch')) {
-        console.log(`Retrying... (${retryCount + 1}/${this.maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
         return this._makeRequest(contents, retryCount + 1);
       }
@@ -92,35 +93,33 @@ class GeminiService extends AIService {
     }
   }
 
+  // Extracts the generated response text from API result
   _extractText(response) {
-    try {
-      if (!response.candidates || response.candidates.length === 0) {
-        throw new Error('No response generated');
-      }
-
-      const candidate = response.candidates[0];
-
-      if (candidate.finishReason === 'SAFETY') {
-        return "I apologize, but I can't respond to that due to safety guidelines.";
-      }
-
-      const text = candidate.content?.parts?.[0]?.text;
-
-      if (!text) {
-        throw new Error('Empty response from AI');
-      }
-
-      return text.trim();
-    } catch (error) {
-      console.error('Error parsing Gemini response:', error);
-      throw new Error('Failed to parse AI response');
+    if (!response.candidates || response.candidates.length === 0) {
+      throw new Error('No response generated');
     }
+
+    const candidate = response.candidates[0];
+
+    if (candidate.finishReason === 'SAFETY') {
+      return "I apologize, but I can't respond to that due to safety guidelines.";
+    }
+
+    const text = candidate.content?.parts?.[0]?.text;
+
+    if (!text) {
+      throw new Error('Empty response from AI');
+    }
+
+    return text.trim();
   }
 
+  // Returns the display name of this AI service
   getName() {
     return 'Gemini 2.5 Flash';
   }
 
+  // Validates API key format for Gemini
   static isValidApiKey(key) {
     return key && key.length > 20 && key.startsWith('AIzaSy');
   }

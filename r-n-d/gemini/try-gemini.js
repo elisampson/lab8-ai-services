@@ -18,16 +18,16 @@ window.addEventListener("DOMContentLoaded", () => {
 
       outputEl.textContent = "Thinking...";
 
-      // ✅ Create service instance
+      //  Create service instance
       const gemini = new GeminiService(key);
 
-      // ✅ Request response
+      // Request response
       const reply = await gemini.getResponse(userInput);
 
       outputEl.textContent = reply;
     } catch (err) {
-      console.error("❌ Error:", err);
-      outputEl.textContent = "❌ " + err.message;
+      console.error(" Error:", err);
+      outputEl.textContent = " X " + err.message;
     }
   });
 });

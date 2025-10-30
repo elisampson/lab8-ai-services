@@ -1,7 +1,9 @@
+// r-n-d/openai/try-openai.js
 document.getElementById("sendBtn").addEventListener("click", async () => {
   const key = prompt("Enter your OpenAI API key:");
   const userInput = document.getElementById("prompt").value;
 
+  // Simple validation
   const resp = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -14,6 +16,7 @@ document.getElementById("sendBtn").addEventListener("click", async () => {
     })
   });
 
+  // Display raw JSON response
   const data = await resp.json();
   document.getElementById("output").textContent =
     JSON.stringify(data, null, 2);

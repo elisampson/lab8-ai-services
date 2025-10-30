@@ -1,3 +1,9 @@
+/**
+ * @fileoverview
+ * Chat controller to manage message submission, provider selection, import/export, and  interaction.
+ * Initializes the app on DOM load and connects model, view, and AI services.
+ */
+
 import * as Model from "./model.js";
 import { renderAllMessages } from "./view.js";
 import { ElizaService } from "../ai/ElizaService.js";
