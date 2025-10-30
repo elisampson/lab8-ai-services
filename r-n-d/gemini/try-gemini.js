@@ -1,27 +1,33 @@
-document.getElementById("sendBtn").addEventListener("click", async () => {
-  const key = prompt("Enter your Gemini API key (from makersuite.google.com):");
-  const input = document.getElementById("prompt").value;
+import GeminiService from "../../ai/GeminiService.js";
 
-  try {
-    const resp = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta1/models/gemini-1.5-flash-latest:generateContent?key=${key}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: input }] }]
-        }),
+
+window.addEventListener("DOMContentLoaded", () => {
+  const sendBtn = document.getElementById("sendBtn");
+  const promptInput = document.getElementById("prompt");
+  const outputEl = document.getElementById("output");
+
+  sendBtn.addEventListener("click", async () => {
+    try {
+      const key = prompt("Enter your Gemini API key (from makersuite.google.com):");
+      const userInput = promptInput.value.trim();
+
+      if (!key || !userInput) {
+        alert("Please enter both your API key and a prompt!");
+        return;
       }
-    );
 
-    const data = await resp.json();
+      outputEl.textContent = "Thinking...";
 
-    const output =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      JSON.stringify(data, null, 2);
+      // ✅ Create service instance
+      const gemini = new GeminiService(key);
 
-    document.getElementById("output").textContent = output;
-  } catch (err) {
-    document.getElementById("output").textContent = "Error: " + err.message;
-  }
+      // ✅ Request response
+      const reply = await gemini.getResponse(userInput);
+
+      outputEl.textContent = reply;
+    } catch (err) {
+      console.error("❌ Error:", err);
+      outputEl.textContent = "❌ " + err.message;
+    }
+  });
 });

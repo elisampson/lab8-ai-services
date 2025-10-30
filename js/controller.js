@@ -1,7 +1,7 @@
 import * as Model from "./model.js";
 import { renderAllMessages } from "./view.js";
 import { ElizaService } from "../ai/ElizaService.js";
-import { GeminiService } from "../ai/GeminiService.js";
+import GeminiService from "../ai/GeminiService.js";
 import { MockService } from "../ai/MockService.js";
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -15,13 +15,13 @@ window.addEventListener("DOMContentLoaded", () => {
   const importFile = document.getElementById("importFile");
   const clearBtn = document.getElementById("clearBtn");
 
-  //  provider controls
+  // Provider controls
   const providerSelect = document.getElementById("providerSelect");
   const apiKeyInput = document.getElementById("apiKeyInput");
   const saveKeyBtn = document.getElementById("saveKeyBtn");
   const keyStatus = document.getElementById("keyStatus");
 
-  // --- Model  View setup ---
+  // --- Model + View setup ---
   renderAllMessages(Model.getMessages());
   document.addEventListener("messagesUpdated", (e) =>
     renderAllMessages(e.detail.messages)
@@ -34,7 +34,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const keyGetter = () => localStorage.getItem("geminiKey");
     switch (name) {
       case "gemini":
-        ai = new GeminiService(keyGetter);
+        ai = new GeminiService(keyGetter());
         break;
       case "mock":
         ai = new MockService();
@@ -64,15 +64,17 @@ window.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const text = input.value.trim();
     if (!text) return;
+
     Model.addMessage(text, "user");
     input.value = "";
 
     try {
+      // ✅ Fixed: only send text to Gemini (no role/content nesting)
       const history = Model.getMessages().map((m) => ({
-        role: m.sender === "user" ? "user" : "assistant",
-        content: m.text,
+        text: m.text
       }));
-      const reply = await ai.complete(history);
+
+      const reply = await ai.getResponse(text, history);
       Model.addMessage(reply, "bot");
     } catch (err) {
       console.error(err);
